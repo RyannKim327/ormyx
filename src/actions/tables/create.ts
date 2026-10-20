@@ -10,76 +10,79 @@ import { RESERVED_COLUMN, RESERVED_TABLE } from "../../reserved";
 import { OrmyxForbiddenTableException, OrmyxTableExistenceException } from "../../exceptions";
 
 export default function createTable(filename: string, key: string, cache: main_structure) {
-	if (Object.keys(cache).length === 0) {
-		Object.assign(cache, read(filename, key))
-	}
-	return (table: string, columns: table_struct | string, opts?: createTableOptions) => {
-		// TODO: Changing the type structure
+  if (Object.keys(cache).length === 0) {
+    Object.assign(cache, read(filename, key))
+  }
+  return (table: string, columns: table_struct | string, opts?: createTableOptions) => {
+    // TODO: Changing the type structure
 
-		if (!opts) {
-			opts = {
-				autoincrement: true,
-				unique: ""
-			}
-		}
+    if (!opts) {
+      opts = {
+        autoincrement: true,
+        unique: "id"
+      }
+    }
 
-		table = table.toLowerCase()
+    table = table.toLowerCase()
 
-		if (isForbiddenKey(table)) {
-			throw new OrmyxForbiddenTableException("Cannot use forbidden key as table name");
-		}
+    if (isForbiddenKey(table)) {
+      throw new OrmyxForbiddenTableException("Cannot use forbidden key as table name");
+    }
 
-		const regex = /^[A-Za-z_]+$/
-		if (!regex.test(table)) {
-			throw new OrmyxForbiddenTableException("Table name only accepts alphabet characters and underscore")
-		}
+    const regex = /^[A-Za-z_]+$/
+    if (!regex.test(table)) {
+      throw new OrmyxForbiddenTableException("Table name only accepts alphabet characters and underscore")
+    }
 
-		// TODO: Anti destroy reserve table
-		if (table === RESERVED_TABLE) {
-			throw new OrmyxForbiddenTableException(`Cannot access reserved table: ${RESERVED_TABLE}`);
-		}
+    // TODO: Anti destroy reserve table
+    if (table === RESERVED_TABLE) {
+      throw new OrmyxForbiddenTableException(`Cannot access reserved table: ${RESERVED_TABLE}`);
+    }
 
-		if (opts?.autoincrement === undefined) {
-			opts.autoincrement = true
-		}
+    if (typeof columns === "string") {
+      columns = tableValidator(columns)
+    }
 
-		if (typeof columns === "string") {
-			columns = tableValidator(columns)
-		}
+    const allowedIdType = ["string", "number", "int"]
 
-		if (columns[RESERVED_COLUMN] !== undefined) {
-			delete columns[RESERVED_COLUMN]
-			c("Creation of table", "w", `A reserve column is deleted`)
-		}
+    if (columns["id"] === undefined) {
+      columns["id"] = "number"
+    }
 
-		// TODO: To prevent overwrite of the table
-		if (cache[table] !== undefined) {
-			c("Create Table", "e", "Table is already existed")
-			throw new OrmyxTableExistenceException("Table is already existed")
-		}
+    // TODO: To force the ID not auto increment in non numerical data
+    if (columns['id']) {
+      if (columns['id'] === 'string') {
+        opts.autoincrement = false
+      }
+    }
 
-		// TODO: Clearing cache table
-		cache[table] = {}
+    if (columns[RESERVED_COLUMN] !== undefined) {
+      delete columns[RESERVED_COLUMN]
+      c("Creation of table", "w", `A reserve column is deleted`)
+    }
 
-		const allowedIdType = ["string", "number", "int"]
+    // TODO: To prevent overwrite of the table
+    if (cache[table] !== undefined) {
+      c("Create Table", "e", "Table is already existed")
+      throw new OrmyxTableExistenceException("Table is already existed")
+    }
 
-		if (columns["id"] === undefined) {
-			columns["id"] = "number"
-		}
+    // TODO: Clearing cache table
+    cache[table] = {}
 
-		if (!allowedIdType.includes(columns["id"])) {
-			throw new Error("ID only requires string or number/int datatype")
-		}
+    if (!allowedIdType.includes(columns["id"])) {
+      throw new Error("ID only requires string or number/int datatype")
+    }
 
-		if (opts?.unique !== undefined) {
-			columns[RESERVED_COLUMN] = opts?.unique ?? ""
-		}
+    if (opts?.unique !== undefined) {
+      columns[RESERVED_COLUMN] = opts?.unique ?? ""
+    }
 
-		cache[RESERVED_TABLE][table] = columns
+    cache[RESERVED_TABLE][table] = columns
 
-		save(filename, key, cache)
-		return {
-			"message": "New table created"
-		}
-	}
+    save(filename, key, cache)
+    return {
+      "message": "New table created"
+    }
+  }
 }

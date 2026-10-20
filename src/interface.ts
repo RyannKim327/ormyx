@@ -5,17 +5,17 @@ export type table_base = Record<string, table_struct>
 export type main_structure = Record<string, json_data | table_base>
 
 export interface insertOptions {
-	increment?: boolean
-	idLength?: number
+  increment?: boolean
+  idLength?: number
 }
 
 export interface filterOptions {
-	limit?: number
-	start?: number
-	where?: string
+  limit?: number
+  start?: number
+  where?: string
 }
 
 export interface createTableOptions {
-	unique?: string,
-	autoincrement?: boolean
+  unique?: string,
+  autoincrement?: boolean
 }
