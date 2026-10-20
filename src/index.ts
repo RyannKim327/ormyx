@@ -9,7 +9,7 @@
 import generateJSON from "./middlewares/generate";
 import insert_data from "./actions/insert";
 import read_data from "./actions/read";
-import { main_structure } from "./interface";
+import * as interfaces from "./interface";
 import update_data from "./actions/update";
 import delete_data from "./actions/delete";
 import create_table from "./actions/tables/create";
@@ -19,50 +19,50 @@ import filter_data from "./actions/filter";
 import * as path from "path";
 
 export function ormyx(key: string, filename?: string) {
-	// TODO: To create a default name if it is blank
-	if (filename === undefined) {
-		filename = "data"
-	}
+  // TODO: To create a default name if it is blank
+  if (filename === undefined) {
+    filename = "data"
+  }
 
-	if (filename.replace(/\s/gi, "").length < 3) {
-		throw new Error("Filename is too short")
-	}
+  if (filename.replace(/\s/gi, "").length < 3) {
+    throw new Error("Filename is too short")
+  }
 
-	// TODO: To filter the filename to prevent multi dots and path traversal
-	filename = path.basename(filename);
-	filename = filename.split(".")[0];
+  // TODO: To filter the filename to prevent multi dots and path traversal
+  filename = path.basename(filename);
+  filename = filename.split(".")[0];
 
-	if (!filename.endsWith(".dat")) {
-		filename += ".dat"
-	}
+  if (!filename.endsWith(".dat")) {
+    filename += ".dat"
+  }
 
-	// TODO: To generate the file first
-	const cache: main_structure = generateJSON(filename, key)
+  // TODO: To generate the file first
+  const cache: interfaces.main_structure = generateJSON(filename, key)
 
-	// INFO: The return functions or public functions
-	// INFO: Function about data
-	const insert = insert_data(filename, key, cache)
-	const read = read_data(filename, key, cache)
-	const update = update_data(filename, key, cache)
-	const remove = delete_data(filename, key, cache)
-	const filter = filter_data(filename, key, cache)
+  // INFO: The return functions or public functions
+  // INFO: Function about data
+  const insert = insert_data(filename, key, cache)
+  const read = read_data(filename, key, cache)
+  const update = update_data(filename, key, cache)
+  const remove = delete_data(filename, key, cache)
+  const filter = filter_data(filename, key, cache)
 
-	// INFO: Functions about table
-	const create = create_table(filename, key, cache)
-	const alter = alter_table(filename, key, cache)
-	const rename = renameTable(filename, key, cache)
+  // INFO: Functions about table
+  const create = create_table(filename, key, cache)
+  const alter = alter_table(filename, key, cache)
+  const rename = renameTable(filename, key, cache)
 
-	return {
-		// INFO: Data actions
-		insert,
-		filter,
-		read,
-		remove,
-		update,
+  return {
+    // INFO: Data actions
+    insert,
+    filter,
+    read,
+    remove,
+    update,
 
-		// INFO: Table actions
-		alter,
-		create,
-		rename
-	}
+    // INFO: Table actions
+    alter,
+    create,
+    rename,
+  }
 }
